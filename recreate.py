@@ -74,7 +74,17 @@ def normpath(path):
     '''
     return path.strip(os.path.sep)
 
+def substitute(s, context):
+    try:
+        return string.Template(s).substitute(context)
+    except KeyError as e:
+        name = e.args[0]
+        print u"参数未指定: %r, 试试 inspect 命令。" % name
+        sys.exit(5)
+
 def create(args):
+    '''从模板创建新项目
+    '''
     template = normpath(args.template)
     destination = normpath(args.destination)
 
@@ -93,6 +103,10 @@ def create(args):
         'create_date': time.strftime('%Y-%m-%d'),
         'creator': '%s-%s' % (_prog, _version),
     }
+
+    if not args.params:
+        args.params = []
+
     for param in args.params:
         try:
             name, _, value = param.partition('=')
@@ -113,7 +127,7 @@ def create(args):
         # 创建目录
         for dirname in dirnames:
             dest_dirname = os.path.join(destination, relpath, dirname)
-            dest_dirname = string.Template(dest_dirname).substitute(context)
+            dest_dirname = substitute(dest_dirname, context)
             print u'创建目录: ', dest_dirname
             if not args.test:
                 os.mkdir(dest_dirname)
@@ -122,11 +136,11 @@ def create(args):
         for filename in filenames:
             tmpl_filename = os.path.join(dirpath, filename)
             dest_filename = os.path.join(destination, relpath, filename)
-            dest_filename = string.Template(dest_filename).substitute(context)
+            dest_filename = substitute(dest_filename, context)
             print u'创建文件: ', tmpl_filename, '->', dest_filename
             if not args.test:
-                content = string.Template(open(tmpl_filename, 'rb').read())
-                content = content.substitute(context)
+                content = open(tmpl_filename, 'rb').read()
+                content = substitute(content, context)
                 open(dest_filename, 'wb').write(content)
 
 if __name__ == '__main__':
