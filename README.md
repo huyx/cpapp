@@ -47,3 +47,14 @@ create
     project_name	项目名称, 缺省为目录名
     create_date		创建日期
 	creator			创建者，缺省为程序名
+
+示例
+----
+
+提取变量:
+
+	recreate.py inspect templates\python
+
+生成新项目:
+
+	recreate.py create templates\python b -f -p author=huyx -p "hello=World"
