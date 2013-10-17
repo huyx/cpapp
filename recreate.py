@@ -80,7 +80,7 @@ class Recreater(object):
         ))
         parser_create.add_argument('source', help=u'源目录')
         parser_create.add_argument('destination', help=u'目标目录')
-        parser_create.add_argument('-p', '--params', dest='params', metavar='P', help=u'参数, 格式为: name=value')
+        parser_create.add_argument('-p', '--params', dest='params', metavar='P', help=u'参数, 格式为: name=value,name=value')
         parser_create.add_argument('-t', '--test', dest='test', default=False, action='store_true', help=u'只输出信息，不创建实际目录和文件')
         parser_create.add_argument('-f', '--force', dest='force', default=False, action='store_true', help=u'不检查目标目录非空')
 

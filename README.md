@@ -3,8 +3,12 @@
 
 模板语法:
 
-- 文件内容: ${varname} 或 $varname
+- 文件内容: {{varname}}
 - 文件名和目录名: 同上
+
+可定制模板， 如定制模板为 `${varname}`，可以使用下面的语法:
+
+    recreate.py -b '${' -e '}' ...
 
 支持的命令:
 
@@ -16,11 +20,11 @@ inspect
 
 用法:
 
-	recreate.py inspect [-h] template
+	recreate.py inspect [-h] source
 
 参数:
 
-	template    源目录
+	source      源目录
 	-h, --help  显示帮助信息
 
 create
@@ -28,16 +32,19 @@ create
 
 用法:
 
-	recreate.py create [-h] [--param PARAM] [--test] [--force] template destination
+	recreate.py create [-h] [-p P] [-t] [-f] source destination
 
-参数:
+位置参数:
 
-	template              源目录
-	destination           目标目录
-	-h, --help            显示帮助信息
-	--param PARAM, -p PARAM  参数, 格式为: name=value
-	--test, -t            只输出信息，不创建实际目录和文件
-	--force, -f           不检查目标目录非空
+    source            源目录
+    destination       目标目录
+
+可选参数:
+
+    -h, --help        显示帮助信息
+    -p P, --params P  参数, 格式为: name=value
+    -t, --test        只输出信息，不创建实际目录和文件
+    -f, --force       不检查目标目录非空
 
 内置参数
 --------
