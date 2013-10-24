@@ -3,7 +3,7 @@
 
 模板语法:
 
-- 变量: `{{varname[=default][ # 注释]}}`
+- 变量: `{{varname[=default][ -- 注释]}}`
 
 文件内容、文件名和目录名中都可以使用变量替换。
 
@@ -15,6 +15,15 @@
 
 - inspect: 可以提取模板文件中的变量
 - create: 根据模板目录创建新项目
+
+配置文件
+--------
+
+模板目录下的 _cpapp.conf 是 cpapp 的配置文件，配置文件语法是：
+
+    # 这是 cpapp 的配置文件，支持 # 开头的注释
+    ignore: *.pyc          # 忽略不必要的文件
+    variable: {{author=cpapp -- 变量注释}}
 
 inspect
 -------

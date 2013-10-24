@@ -3,11 +3,10 @@ import argparse
 import fnmatch
 import os
 import re
-import string
 import sys
 import time
 
-_prog = 'recreate'
+_prog = 'cpapp'
 _version = '0.1'
 
 def normpath(path):
@@ -23,7 +22,7 @@ class Template(object):
             re.escape(begin),
             '(?P<name>\w*)',
             '(?:=(?P<default>\w*))?',
-            '(?:\s*\#\s*(?P<comment>.*?))?',
+            '(?:\s*--\s*(?P<comment>.*?))?',
             re.escape(end)
         ))
         self.pattern = re.compile(pattern)
@@ -37,17 +36,38 @@ class Template(object):
         return self.pattern.sub(repl, string)
 
 
-class Exclude(object):
-    def __init__(self, source):
-        filename = os.path.join(source, '.recreate-ignore')
-        try:
-            self.excludes = map(string.strip, open(filename))
-        except Exception as e:
-            print u'提示: 打开 %r 失败, %s', e
-            self.excludes = []
+class Configure(object):
+    def __init__(self, source, inspect=False):
+        if inspect:
+            self.ignores = []
+        else:
+            self.ignores = ['_cpapp.conf']
 
-    def __call__(self, name):
-        for pat in self.excludes:
+        filename = os.path.join(source, '_cpapp.conf')
+        if not os.path.exists(filename):
+            return
+
+        for line in open(filename):
+            # 去掉注释
+            if '#' in line:
+                line = line.partition('#')[0]
+
+            line = line.strip()
+            if not ':' in line:
+                continue
+            cmd, _, value = line.partition(':')
+            cmd = cmd.strip()
+            value = value.strip()
+
+            if cmd == 'ignore':
+                self.ignores.append(value)
+            elif cmd == 'variable':
+                pass
+            else:
+                print u'ERR: 未知命令 %r' % line
+
+    def ignore(self, name):
+        for pat in self.ignores:
             if fnmatch.fnmatch(name, pat):
                 return True
         return False
@@ -137,7 +157,7 @@ class Recreater(object):
 
     def inspect(self, args):
         source = normpath(args.source)
-        exclude = Exclude(source)
+        config = Configure(source, True)
 
         variables = {}
 
@@ -150,13 +170,15 @@ class Recreater(object):
             relpath = normpath(dirpath[len(source):])
             for dirname in dirnames:
                 dirname = os.path.join(relpath, dirname)
-                if not exclude(dirname):
-                    self._inspect(dirname, variables)
+                if config.ignore(dirname):
+                    continue
+                self._inspect(dirname, variables)
             for filename in filenames:
-                if not exclude(os.path.join(relpath, filename)):
-                    filename = os.path.join(dirpath, filename)
-                    self._inspect(filename, variables)
-                    self._inspect(open(filename).read(), variables)
+                if config.ignore(os.path.join(relpath, filename)):
+                    continue
+                filename = os.path.join(dirpath, filename)
+                self._inspect(filename, variables)
+                self._inspect(open(filename).read(), variables)
         for _name, v in sorted(variables.iteritems()):
             print v
 
