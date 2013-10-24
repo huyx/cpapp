@@ -30,7 +30,7 @@ class Template(object):
     def substitute(self, string, context):
         def repl(m):
             default = m.group('default')
-            if default:
+            if default is not None:
                 return context.get(m.group('name'), default)
             return context[m.group('name')]
         return self.pattern.sub(repl, string)
@@ -94,7 +94,10 @@ class Variable(object):
         self.name = name
 
     def __str__(self):
-        default = self.default and '(%s)' % self.default or ''
+        if self.default is not None:
+            default = '(%s)' % self.default
+        else:
+            default = ''
         item = '%s%s' % (self.name, default)
         return '%-20s%s' % (item, self.comment or '')
 
