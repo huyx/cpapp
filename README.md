@@ -3,8 +3,9 @@
 
 模板语法:
 
-- 文件内容: {{varname}}
-- 文件名和目录名: 同上
+- 变量: `{{varname[=default][ # 注释]}}`
+
+文件内容、文件名和目录名中都可以使用变量替换。
 
 可定制模板， 如定制模板为 `${varname}`，可以使用下面的语法:
 
@@ -64,4 +65,4 @@ create
 
 生成新项目:
 
-	recreate.py create templates\python b -f -p author=huyx -p "hello=World"
+	recreate.py create templates\python b -f -p author=me,hello=World

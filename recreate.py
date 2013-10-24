@@ -18,11 +18,22 @@ def normpath(path):
 
 class Template(object):
     def __init__(self, begin, end):
-        pattern = re.escape(begin) + '(\w*)' + re.escape(end)
+        # 格式 {{name=default # comment}}
+        pattern = ''.join((
+            re.escape(begin),
+            '(?P<name>\w*)',
+            '(?:=(?P<default>\w*))?',
+            '(?:\s*\#\s*(?P<comment>.*?))?',
+            re.escape(end)
+        ))
         self.pattern = re.compile(pattern)
 
     def substitute(self, string, context):
-        repl = lambda m: context[m.group(1)]
+        def repl(m):
+            default = m.group('default')
+            if default:
+                return context.get(m.group('name'), default)
+            return context[m.group('name')]
         return self.pattern.sub(repl, string)
 
 
@@ -40,6 +51,32 @@ class Exclude(object):
             if fnmatch.fnmatch(name, pat):
                 return True
         return False
+
+
+def to_unicode(s, coding=None):
+    if coding:
+        return s.decode(coding)
+    try:
+        return s.decode('utf-8')
+    except:
+        pass
+    try:
+        return s.decode('gbk')
+    except:
+        pass
+
+
+class Variable(object):
+    default = None
+    comment = None
+
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        default = self.default and '(%s)' % self.default or ''
+        item = '%s%s' % (self.name, default)
+        return '%-20s%s' % (item, self.comment or '')
 
 
 class Recreater(object):
@@ -91,24 +128,19 @@ class Recreater(object):
     def post_parse_args(self):
         self.template = Template(self.args.begin, self.args.end)
 
-    def _inspect(self, string, context):
-        while True:
-            try:
-                self.template.substitute(string, context)
-            except KeyError as e:
-                name = e.args[0]
-                context[name] = '-'
-            except ValueError as e:
-                print string, context
-                raise e
-            else:
-                break
+    def _inspect(self, string, variables):
+        for m in self.template.pattern.finditer(string):
+            name = m.group('name')
+            v = variables.setdefault(name, Variable(name))
+            v.default = v.default or m.group('default')
+            v.comment = v.comment or to_unicode(m.group('comment'))
 
     def inspect(self, args):
         source = normpath(args.source)
         exclude = Exclude(source)
 
-        context = {}
+        variables = {}
+
         for dirpath, dirnames, filenames in os.walk(source):
             # 标准化目录名
             dirpath = normpath(dirpath)
@@ -119,14 +151,14 @@ class Recreater(object):
             for dirname in dirnames:
                 dirname = os.path.join(relpath, dirname)
                 if not exclude(dirname):
-                    self._inspect(dirname, context)
+                    self._inspect(dirname, variables)
             for filename in filenames:
                 if not exclude(os.path.join(relpath, filename)):
                     filename = os.path.join(dirpath, filename)
-                    self._inspect(filename, context)
-                    self._inspect(open(filename).read(), context)
-        for name in sorted(context):
-            print name
+                    self._inspect(filename, variables)
+                    self._inspect(open(filename).read(), variables)
+        for _name, v in sorted(variables.iteritems()):
+            print v
 
     def substitute(self, string, context):
         try:
@@ -183,14 +215,15 @@ class Recreater(object):
                 dest_dirname = self.substitute(dest_dirname, context)
                 print u'创建目录: ', dest_dirname
                 if not args.test:
-                    os.mkdir(dest_dirname)
+                    if not os.path.exists(dest_dirname):
+                        os.mkdir(dest_dirname)
 
             # 创建文件
             for filename in filenames:
                 tmpl_filename = os.path.join(dirpath, filename)
                 dest_filename = os.path.join(destination, relpath, filename)
                 dest_filename = self.substitute(dest_filename, context)
-                print u'创建文件: ', tmpl_filename, '->', dest_filename
+                print u'创建文件: ', dest_filename
                 if not args.test:
                     content = open(tmpl_filename, 'rb').read()
                     content = self.substitute(content, context)
@@ -208,4 +241,10 @@ class Recreater(object):
             raise Exception(u'未知子命令: %r' % args.subcommand)
 
 if __name__ == '__main__':
+    import sys
+    reload(sys)
+    if sys.platform.startswith('win'):
+        sys.setdefaultencoding('gbk')
+    else:
+        sys.setdefaultencoding('utf-8')
     Recreater().main()
