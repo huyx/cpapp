@@ -9,7 +9,7 @@
 
 可定制模板， 如定制模板为 `${varname}`，可以使用下面的语法:
 
-    recreate.py -b '${' -e '}' ...
+    cpapp.py -b '${' -e '}' ...
 
 支持的命令:
 
@@ -21,7 +21,7 @@ inspect
 
 用法:
 
-	recreate.py inspect [-h] source
+	cpapp.py inspect [-h] source
 
 参数:
 
@@ -33,7 +33,7 @@ create
 
 用法:
 
-	recreate.py create [-h] [-p P] [-t] [-f] source destination
+	cpapp.py create [-h] [-p P] [-t] [-f] source destination
 
 位置参数:
 
@@ -61,8 +61,8 @@ create
 
 提取变量:
 
-	recreate.py inspect templates\python
+	cpapp.py inspect templates\python
 
 生成新项目:
 
-	recreate.py create templates\python b -f -p author=me,hello=World
+	cpapp.py create templates\python b -f -p author=me,hello=World
