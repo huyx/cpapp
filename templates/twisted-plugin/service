@@ -1,0 +1,44 @@
+#!/bin/bash
+
+PROJECT_NAME={{project_name}}
+TAPNAME={{tapname}}
+TAPNAME=${TAPNAME:-${PROJECT_NAME}}
+
+NAME=$(basename $(dirname $(readlink -f $0)))
+NOFILE={{nofile=1024 -- 允许打开的最大文件数}}
+
+USER=$(stat -c '%U' $0)
+HOME=$(dirname $0)
+TWISTD=$(which twistd)
+
+LOGDIR=/var/{{project_name}}/log
+PIDDIR=/var/{{project_name}}/run
+LOGFILE=$LOGDIR/$NAME.log
+PIDFILE=$PIDDIR/$NAME.pid
+
+ACTION=$1
+
+case $ACTION in
+  start)
+    echo -n "Starting $NAME ... "
+    [[ -d $PIDDIR ]] || sudo mkdir -p $PIDDIR && sudo chown $USER $PIDDIR
+    [[ -d $LOGDIR ]] || sudo mkdir -p $LOGDIR && sudo chown $USER $LOGDIR
+    ulimit -n $NOFILE
+    start-stop-daemon --start --quiet --chuid $USER --chdir $HOME\
+        --exec $TWISTD -- \
+        --umask 0022 --reactor=epoll --pidfile=$PIDFILE --logfile=$LOGFILE $TAPNAME
+    [ "$?" = "0" ] && echo [ok] || echo [error]
+    ;;
+  stop)
+    echo -n "Stoping $NAME ... "
+    start-stop-daemon --stop --retry 5 --pidfile=$PIDFILE
+    [ "$?" = "0" ] && echo [ok] || echo [error]
+    ;;
+  restart)
+    $0 stop
+    $0 start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    ;;
+esac
