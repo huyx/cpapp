@@ -5,7 +5,7 @@ TAPNAME={{tapname}}
 TAPNAME=${TAPNAME:-${PROJECT_NAME}}
 
 NAME=$(basename $(dirname $(readlink -f $0)))
-NOFILE={{nofile=1024 -- 允许打开的最大文件数}}
+NOFILE={{nofile}}
 
 USER=$(stat -c '%U' $0)
 HOME=$(dirname $0)
