@@ -182,8 +182,8 @@ class Recreater(object):
                 filename = os.path.join(dirpath, filename)
                 self._inspect(filename, variables)
                 self._inspect(open(filename).read(), variables)
-        for _name, v in sorted(variables.iteritems()):
-            print v
+
+        return variables
 
     def substitute(self, string, context):
         try:
@@ -214,6 +214,11 @@ class Recreater(object):
             'create_date': time.strftime('%Y-%m-%d'),
             'creator': '%s-%s' % (_prog, _version),
         }
+
+        variables = self.inspect(args)
+        for name, v in variables.iteritems():
+            if v.default is not None:
+                context.setdefault(name, v.default)
 
         params = args.params or ''
 
@@ -259,7 +264,9 @@ class Recreater(object):
 
         args = self.args
         if args.subcommand == 'inspect':
-            self.inspect(args)
+            variables = self.inspect(args)
+            for _name, v in sorted(variables.iteritems()):
+                print v
         elif args.subcommand == 'create':
             self.create(args)
         else:
