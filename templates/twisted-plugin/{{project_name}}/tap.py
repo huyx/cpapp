@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from . import echo, ssh
 from twisted.application import service, internet
+from twisted.internet import reactor
 from twisted.python import logfile, log, usage
+from version import version
 import settings
 
 # HACK: 修改缺省的 LogFile 为 DailyLogFile
@@ -27,7 +29,10 @@ class RootService(service.MultiService):
 
     def SSHServer(self, port, passwd, namespace=None):
         namespace = namespace or {}
-        namespace.update(root=self)
+        namespace.update(
+            root=self,
+            version=version,
+        )
         service = internet.TCPServer(port, ssh.SSHFactory(passwd, namespace))
         service.setServiceParent(self)
 
@@ -37,6 +42,11 @@ def makeService(config):
     root.TCPServer(settings.ECHO_PORT, echo.TCPEcho())
     root.UDPServer(settings.ECHO_PORT, echo.UDPEcho())
     # root.TimerService(10, callable)
+
+    # ssh 调试服务
     root.SSHServer(settings.SSH_PORT, settings.SSH_PASSWD)
+
+    # 输出版本信息
+    reactor.callWhenRunning(log.msg, version)
 
     return root

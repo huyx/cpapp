@@ -1,0 +1,1 @@
+version = '{{project_name}}-0.1'
