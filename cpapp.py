@@ -60,6 +60,7 @@ class Configure(object):
             value = value.strip()
 
             if cmd == 'ignore':
+                value = os.path.normpath(value)
                 self.ignores.append(value)
             elif cmd == 'variable':
                 pass
@@ -68,7 +69,7 @@ class Configure(object):
 
     def ignore(self, name):
         for pat in self.ignores:
-            if fnmatch.fnmatch(name, pat):
+            if fnmatch.fnmatchcase(name, pat):
                 return True
         return False
 
@@ -198,6 +199,7 @@ class Recreater(object):
         '''
         source = normpath(args.source)
         destination = normpath(args.destination)
+        config = Configure(source)
 
         # 检查并创建目标目录
         if os.path.exists(destination):
@@ -241,6 +243,9 @@ class Recreater(object):
 
             # 创建目录
             for dirname in dirnames:
+                # 检查是否需要忽略
+                if config.ignore(os.path.join(relpath, dirname)):
+                    continue
                 dest_dirname = os.path.join(destination, relpath, dirname)
                 dest_dirname = self.substitute(dest_dirname, context)
                 print u'创建目录: ', dest_dirname
@@ -251,6 +256,9 @@ class Recreater(object):
             # 创建文件
             for filename in filenames:
                 tmpl_filename = os.path.join(dirpath, filename)
+                # 检查是否需要忽略
+                if config.ignore(os.path.join(relpath, filename)):
+                    continue
                 dest_filename = os.path.join(destination, relpath, filename)
                 dest_filename = self.substitute(dest_filename, context)
                 print u'创建文件: ', dest_filename
