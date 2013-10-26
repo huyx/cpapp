@@ -13,10 +13,11 @@
 文件
 ----
 
+- `service`: 启动/停止脚本
 - `settings/default.py`: 缺省配置文件
 - `settings/{{project_name}}.py`: 配置文件
 - `etc/passwd`: SSH 调试服务密码文件
-- `service`: 启动/停止脚本
+- `{{project_name}}/share.py`: 保存共享变量的模块 
 
 Monit 配置示例
 --------------
