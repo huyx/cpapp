@@ -34,12 +34,24 @@ class RootService(service.MultiService):
         namespace = namespace or {}
         namespace.update(
             root=self,
-            version=version.version,
+            version=version,
             share=share,
         )
         service = internet.TCPServer(port, ssh.SSHFactory(passwd, namespace))
         service.setServiceParent(self)
         return service
+
+def startup():
+    # 输出版本信息
+    log.msg('version:', version)
+
+    # 输出配置信息
+    for k in dir(settings):
+        if k == k.upper():
+            log.msg('settings: %s=%r' % (k, getattr(settings, k)))
+
+def shutdown():
+    log.msg(u'Shuting down ...')
 
 def makeService(config):
     root = RootService()
@@ -51,7 +63,8 @@ def makeService(config):
     # ssh 调试服务
     root.SSHServer(settings.SSH_PORT, settings.SSH_PASSWD)
 
-    # 输出版本信息
-    reactor.callWhenRunning(log.msg, 'version:', version)
+    # 注册事件处理器
+    reactor.addSystemEventTrigger('after', 'startup', startup)
+    reactor.addSystemEventTrigger('before', 'shutdown', shutdown)
 
     return root
