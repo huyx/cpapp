@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
-from twisted.application import strports
 from twisted.conch import manhole, manhole_ssh
 from twisted.conch.insults import insults
-from twisted.conch.ssh import factory
 from twisted.cred import portal, checkers
-from twisted.internet import reactor
-from twisted.internet.error import ProcessTerminated
-from twisted.python import log, failure
 
 class DebugRealm(manhole_ssh.TerminalRealm):
     def __init__(self, namespace):

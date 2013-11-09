@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from . import echo, ssh, share
+from . import ssh, share
 from .version import version
 from twisted.application import service, internet
 from twisted.internet import reactor
