@@ -5,6 +5,12 @@ from twisted.application import service, internet
 from twisted.internet import reactor
 from twisted.python import logfile, log, usage
 import settings
+import sys
+
+# HACK: 修改缺省编码
+reload(sys)
+encoding = 'cp936' if sys.platform == 'win32' else 'utf-8'
+sys.setdefaultencoding(encoding)
 
 # HACK: 修改缺省的 LogFile 为 DailyLogFile
 logfile.LogFile = logfile.DailyLogFile
