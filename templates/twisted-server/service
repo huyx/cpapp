@@ -6,15 +6,24 @@ TAPNAME=${TAPNAME:-${PROJECT_NAME}}
 
 NAME=$(basename $(dirname $(readlink -f $0)))
 NOFILE={{nofile}}
+TWISTD=$(which twistd)
 
 USER=$(stat -c '%U' $0)
 HOME=$(dirname $0)
-TWISTD=$(which twistd)
 
 LOGDIR=/var/{{project_name}}/log
 PIDDIR=/var/{{project_name}}/run
 LOGFILE=$LOGDIR/$NAME.log
 PIDFILE=$PIDDIR/$NAME.pid
+
+# 自动查找 twistd
+if [ ! "$TWISTD" ]; then
+  for path in /usr/bin /usr/local/bin; do
+    if [ -x $path/twistd ]; then
+      TWISTD=$path/twistd
+    fi
+  done
+fi
 
 ACTION=$1
 
